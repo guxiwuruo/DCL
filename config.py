@@ -48,6 +48,7 @@ class LoadConfig(object):
     def __init__(self, args, version):
         if version == 'train':
             get_list = ['train', 'val']
+            # get_list = ['train']
         elif version == 'val':
             get_list = ['val']
         elif version == 'test':

@@ -51,21 +51,24 @@ class MainModel(nn.Module):
             self.Aclassifier = AngleLinear(2048, self.num_classes, bias=False)
 
     def forward(self, x, last_cont=None):
-        x = self.model(x)
-        if self.use_dcl:
-            mask = self.Convmask(x)
-            mask = self.avgpool2(mask)
-            mask = torch.tanh(mask)
-            mask = mask.view(mask.size(0), -1)
+        x = self.model(x) # torch.Size([8, 2048, 14, 14])
+        if self.use_dcl: # reference to 3.2 Construction Learning in paper
+            mask = self.Convmask(x) # torch.Size([8, 1, 14, 14])
+            mask = self.avgpool2(mask) # torch.Size([8, 1, 7, 7])
+            mask = torch.tanh(mask) #
+            mask = mask.view(mask.size(0), -1) # torch.Size([8, 49])
 
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
+        x = self.avgpool(x) # torch.Size([8, 2048, 1, 1]) (output_size =1)
+        x = x.view(x.size(0), -1) # torch.Size([8, 2048])
         out = []
-        out.append(self.classifier(x))
+        # reference to 3.1.1 region confusion mechanism
+        out.append(self.classifier(x)) # nn.Linear(2048,200) torch.Size([8, 200])
 
         if self.use_dcl:
-            out.append(self.classifier_swap(x))
-            out.append(mask)
+            # reference to 3.1.2 Adversarial learning
+            out.append(self.classifier_swap(x)) # nn.Linear(2048,400) torch.Size([8, 400])
+            # reference to 3.2 Construction Learning in paper
+            out.append(mask) # torch.Size([8, 2048])
 
         if self.use_Asoftmax:
             if last_cont is None:
